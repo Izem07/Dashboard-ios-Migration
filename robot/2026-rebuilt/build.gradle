@@ -87,6 +87,8 @@ dependencies {
 
     // Use the local sim-core project instead of requiring a published artifact.
     implementation project(':sim-core')
+    simulationDebug project(':sim-core')
+    simulationRelease project(':sim-core')
     // Explicit ode4j — composite build doesn't reliably propagate transitive api deps
     implementation 'org.ode4j:core:0.5.4'
 
