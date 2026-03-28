@@ -123,34 +123,35 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               ),
             ),
 
-          // ── Selectors ─────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              children: [
-                MatchSelector(onSelected: _onMatchSelected),
-                const SizedBox(height: 8),
-                for (int i = 0; i < 3; i++) ...[
-                  if (i > 0) const SizedBox(height: 8),
-                  TeamSelector(
-                    slotIndex: i,
-                    value: _selectedTeams[i],
-                    onChanged: (team) => _onTeamChanged(i, team),
-                  ),
-                ],
-              ],
-            ),
-          ),
 
           // ── Body ───────────────────────────────────────────────────
           Expanded(
-            child: filledCount == 0
-                ? _EmptyState()
-                : SingleChildScrollView(
+            child:
+            SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ── One big shared field with all paths ───────
+                  // ── Selectors ─────────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Column(
+                      children: [
+                        MatchSelector(onSelected: _onMatchSelected),
+                        const SizedBox(height: 8),
+                        for (int i = 0; i < 3; i++) ...[
+                          if (i > 0) const SizedBox(height: 8),
+                          TeamSelector(
+                            slotIndex: i,
+                            value: _selectedTeams[i],
+                            onChanged: (team) => _onTeamChanged(i, team),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ), // ── One big shared field with all paths ───────
+                  if(filledCount == 0)
+                    _EmptyState()
+                  else ... [
                   Card(
                     child: SizedBox(
                       height: 450,
@@ -176,13 +177,13 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for (int i = 0; i < 3; i++) ...[
-                          if (i > 0) const SizedBox(width: 10),
+                  if (i > 0) const SizedBox(width: 10),
                           Expanded(
                             child: _selectedTeams[i] != null
                                 ? TeamDataColumn(
                               teamNumber: _selectedTeams[i]!,
                               slotIndex: i,
-                            )
+                             )
                                 : const SizedBox.shrink(),
                           ),
                         ],
@@ -190,7 +191,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                     ),
                   ),
                 ],
-              ),
+              ]),
             ),
           ),
         ],
@@ -198,6 +199,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     );
   }
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // Top Bar
