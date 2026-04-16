@@ -16,15 +16,13 @@ jobs:
           architecture: x64
           
       - run: flutter pub get
-        working-directory: scouting/android  # Add the correct path to your Flutter project
-       
-      - run: pod repo update
-        working-directory: scouting/android/ios
-
+        working-directory: scouting/android
+      
+      # Generate iOS files before running pod repo update
       - run: flutter build ios --release --no-codesign
         working-directory: scouting/android
 
-      - run: mkdir Payload
+      - run: mkdir -p Payload
         working-directory: scouting/android/build/ios/iphoneos
 
       - run: mv Runner.app/ Payload
