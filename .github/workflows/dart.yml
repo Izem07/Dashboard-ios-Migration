@@ -31,9 +31,7 @@ jobs:
         env:
           FLUTTER_XCODE_CODE_SIGN_IDENTITY: ""
           FLUTTER_XCODE_CODE_SIGNING_REQUIRED: "NO"
-          FLUTTER_XCODE_CODE_SIGN_ENTITLEMENTS: ""
-
-      - run: mkdir Payload
+          FLUTTER_XCODE_CODE_SIGN_ENTITLEMENTS: ""      - run: mkdir Payload
         working-directory: dash/build/ios/iphoneos
 
       - run: mv Runner.app/ Payload
