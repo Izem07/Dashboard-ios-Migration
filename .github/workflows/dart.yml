@@ -31,45 +31,34 @@ jobs:
 
       - name: Generate Flutter xcconfig
         run: |
-          FLUTTER_ROOT=$(flutter --version --machine 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('flutterRoot',''))" 2>/dev/null || dirname $(dirname $(which flutter)))
-          cat > ios/Flutter/Generated.xcconfig << EOF
-          FLUTTER_ROOT=$FLUTTER_ROOT
-          FLUTTER_APPLICATION_PATH=${{ github.workspace }}/dash
-          COCOAPODS_PARALLEL_CODE_SIGN=true
-          FLUTTER_TARGET=${{ github.workspace }}/dash/lib/main.dart
-          FLUTTER_BUILD_DIR=build
-          FLUTTER_BUILD_NAME=1.0.0
-          FLUTTER_BUILD_NUMBER=1
-          DART_OBFUSCATION=false
-          TRACK_WIDGET_CREATION=false
-          TREE_SHAKE_ICONS=false
-          PACKAGE_CONFIG=${{ github.workspace }}/dash/.dart_tool/package_config.json
-          EOF
-        working-directory: dash
+          FLUTTER_ROOT=$(dirname $(dirname $(which flutter)))
+          APP_PATH="${{ github.workspace }}/dash"
+          cat > ${{ github.workspace }}/ios/Flutter/Generated.xcconfig << EOF
+FLUTTER_ROOT=$FLUTTER_ROOT
+FLUTTER_APPLICATION_PATH=$APP_PATH
+COCOAPODS_PARALLEL_CODE_SIGN=true
+FLUTTER_TARGET=$APP_PATH/lib/main.dart
+FLUTTER_BUILD_DIR=build
+FLUTTER_BUILD_NAME=1.0.0
+FLUTTER_BUILD_NUMBER=1
+DART_OBFUSCATION=false
+TRACK_WIDGET_CREATION=false
+TREE_SHAKE_ICONS=false
+PACKAGE_CONFIG=$APP_PATH/.dart_tool/package_config.json
+EOF
 
       - name: Install pods
         run: pod install
         working-directory: dash/ios
 
-      - name: Build iOS with xcodebuild
-        run: |
-          xcodebuild \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            -derivedDataPath build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            build
+      - name: Build Flutter kernel
+        run: flutter build ios --release --no-codesign --no-tree-shake-icons
         working-directory: dash
 
       - name: Package IPA
         run: |
-          mkdir Payload
-          cp -r build/ios/Build/Products/Release-iphoneos/Runner.app Payload/
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
           zip -qq -r -9 "Feds Dash v1.0.0.ipa" Payload
         working-directory: dash
 
