@@ -17,6 +17,9 @@ jobs:
           channel: 'stable'
           architecture: x64
 
+      - name: Link ios folder into dash
+        run: ln -s ${{ github.workspace }}/ios ${{ github.workspace }}/dash/ios
+
       - run: flutter pub get
         working-directory: dash
 
