@@ -11,10 +11,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Link ios folder into dash
         run: rm -rf ${{ github.workspace }}/dash/ios && ln -s ${{ github.workspace }}/ios ${{ github.workspace }}/dash/ios
@@ -26,29 +29,37 @@ jobs:
         run: dart run flutter_launcher_icons
         working-directory: dash
 
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign --no-tree-shake-icons
+      - name: Generate Flutter build files
+        run: flutter build ios --config-only
         working-directory: dash
-        env:
-          FLUTTER_XCODE_CODE_SIGN_IDENTITY: ""
-          FLUTTER_XCODE_CODE_SIGNING_REQUIRED: "NO"
-          FLUTTER_XCODE_CODE_SIGN_ENTITLEMENTS: ""
 
-      - run: mkdir Payload
-        working-directory: dash/build/ios/iphoneos
+      - name: Build iOS with xcodebuild
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            build
+        working-directory: dash
 
-      - run: mv Runner.app/ Payload
-        working-directory: dash/build/ios/iphoneos
-
-      - name: Zip output
-        run: zip -qq -r -9 "Feds Dash v1.0.0.ipa" Payload
-        working-directory: dash/build/ios/iphoneos
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r build/ios/Build/Products/Release-iphoneos/Runner.app Payload/
+          zip -qq -r -9 "Feds Dash v1.0.0.ipa" Payload
+        working-directory: dash
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "dash/build/ios/iphoneos/Feds Dash v1.0.0.ipa"
+          file: "dash/Feds Dash v1.0.0.ipa"
           tag: v1.0.0
           release_name: Dashboard v1.0.0
           overwrite: true
