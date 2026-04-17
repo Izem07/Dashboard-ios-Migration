@@ -11,66 +11,43 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          architecture: x64
 
       - name: Link ios folder into dash
         run: rm -rf "$GITHUB_WORKSPACE/dash/ios" && ln -s "$GITHUB_WORKSPACE/ios" "$GITHUB_WORKSPACE/dash/ios"
 
-      - name: Flutter pub get
-        run: flutter pub get
+      - run: flutter pub get
         working-directory: dash
 
       - name: Generate iOS app icons
         run: dart run flutter_launcher_icons
         working-directory: dash
 
-      - name: Assemble Flutter iOS release bundle
-        run: |
-          flutter assemble \
-            --output=build/ios/Release-iphoneos \
-            -dTargetPlatform=ios \
-            -dBuildMode=release \
-            -dTreeShakeIcons=false \
-            release_ios_bundle_flutter_assets
-        working-directory: dash
-
-      - name: Install pods
-        run: pod install
+      - run: pod repo update
         working-directory: dash/ios
 
-      - name: Build with xcodebuild
-        run: |
-          xcodebuild \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            -derivedDataPath build/ios/derived \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            build
+      - run: flutter build ios --release --no-codesign
         working-directory: dash
 
-      - name: Package IPA
-        run: |
-          mkdir -p Payload
-          cp -r build/ios/derived/Build/Products/Release-iphoneos/Runner.app Payload/
-          zip -qq -r -9 "Feds Dash v1.0.0.ipa" Payload
-        working-directory: dash
+      - run: mkdir Payload
+        working-directory: dash/build/ios/iphoneos
 
-      - name: Upload to release
+      - run: mv Runner.app/ Payload
+        working-directory: dash/build/ios/iphoneos
+
+      - name: Zip output
+        run: zip -qq -r -9 "Feds Dash v1.0.0.ipa" Payload
+        working-directory: dash/build/ios/iphoneos
+
+      - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "dash/Feds Dash v1.0.0.ipa"
+          file: "dash/build/ios/iphoneos/Feds Dash v1.0.0.ipa"
           tag: v1.0.0
           release_name: Dashboard v1.0.0
           overwrite: true
