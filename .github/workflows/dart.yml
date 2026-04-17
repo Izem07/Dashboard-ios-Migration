@@ -31,8 +31,9 @@ jobs:
 
       - name: Generate Flutter xcconfig
         run: |
-          cat > ios/Flutter/Generated.xcconfig << 'EOF'
-          FLUTTER_ROOT=/Users/runner/hostedtoolcache/flutter/stable-latest-arm64/x64
+          FLUTTER_ROOT=$(flutter --version --machine 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('flutterRoot',''))" 2>/dev/null || dirname $(dirname $(which flutter)))
+          cat > ios/Flutter/Generated.xcconfig << EOF
+          FLUTTER_ROOT=$FLUTTER_ROOT
           FLUTTER_APPLICATION_PATH=${{ github.workspace }}/dash
           COCOAPODS_PARALLEL_CODE_SIGN=true
           FLUTTER_TARGET=${{ github.workspace }}/dash/lib/main.dart
